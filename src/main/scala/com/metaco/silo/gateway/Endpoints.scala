@@ -9,6 +9,7 @@ import io.circe.generic.auto._
 import sttp.tapir.CodecFormat.TextPlain
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
+import sttp.tapir.model.{CommaSeparated, Delimited}
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 import sttp.tapir.ztapir.ZServerEndpoint
 import zio.Task
@@ -85,7 +86,18 @@ object Endpoints {
 
   val booksListingServerEndpoint: ZServerEndpoint[Any, Any] = booksListing.serverLogicSuccess(s => ZIO.succeed(Library.books))
 
-  val apiEndpoints: List[ZServerEndpoint[Any, Any]] = List(helloServerEndpoint, booksListingServerEndpoint)
+  // This is ok..
+  val c = implicitly[Codec[String, CommaSeparated[Author], TextPlain]].map(_.values)(Delimited(_))
+
+  // but wrapped in option list it's not!
+  val books2Listing = endpoint.get
+    .in("books" / "list" / "qed")
+    .in(query[Option[List[CommaSeparated[Author]]]]("name"))
+    .out(jsonBody[List[Book]])
+
+  val books2ListingServerEndpoint: ZServerEndpoint[Any, Any] = booksListing.serverLogicSuccess(s => ZIO.succeed(Library.books))
+
+  val apiEndpoints: List[ZServerEndpoint[Any, Any]] = List(helloServerEndpoint, booksListingServerEndpoint, books2ListingServerEndpoint)
 
   val docEndpoints: List[ZServerEndpoint[Any, Any]] = SwaggerInterpreter()
     .fromServerEndpoints[Task](apiEndpoints, "harmony", "1.0.0")
