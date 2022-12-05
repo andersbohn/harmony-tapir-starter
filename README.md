@@ -1,27 +1,28 @@
 ## Quick start
 
-If you don't have [sbt](https://www.scala-sbt.org) installed already, you can use the provided wrapper script:
-
-```shell
-./sbtx -h # shows an usage of a wrapper script
-./sbtx compile # build the project
-./sbtx test # run the tests
-./sbtx run # run the application (Main)
+1. Spin up `Main` with debugger
+2. see swagger docs at http://localhost:8080/docs/#/default/getBooksListAll
+3. asking for parameter `name` which is `array` of `string` `->` `Option[String[String[Author]]` 
+4. which correctly allows all of eg  
 ```
-
-For more details check the [sbtx usage](https://github.com/dwijnand/sbt-extras#sbt--h) page.
-
-Otherwise, if sbt is already installed, you can use the standard commands:
-
-```shell
-sbt compile # build the project
-sbt test # run the tests
-sbt run # run the application (Main)
+curl -v "http://localhost:8080/books/list/all"
+curl -v "http://localhost:8080/books/list/all?name=fi"
+curl -v "http://localhost:8080/books/list/all?name=fi,fy"
+curl -v "http://localhost:8080/books/list/all?name=fi,fy&name=boo"
 ```
-
-## Links:
-
-* [tapir documentation](https://tapir.softwaremill.com/en/latest/)
-* [tapir github](https://github.com/softwaremill/tapir)
-* [bootzooka: template microservice using tapir](https://softwaremill.github.io/bootzooka/)
-* [sbtx wrapper](https://github.com/dwijnand/sbt-extras#installation)
+5. Note: no actual logic impl, but can check the incoming typed values are correct using a breakpoint or so
+6. also the yaml for the query-name is ~ 
+```
+ /books/list/all:
+    get:
+      operationId: getBooksListAll
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+```
+7. which could be read as ~ `Option[List[List[String]]]` :-)
