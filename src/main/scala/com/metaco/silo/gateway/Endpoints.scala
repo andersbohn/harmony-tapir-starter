@@ -92,10 +92,15 @@ object Endpoints {
   // but wrapped in option list it's not!
   val books2Listing = endpoint.get
     .in("books" / "list" / "qed")
-    .in(query[Option[List[CommaSeparated[Author]]]]("name"))
+    .in(query[List[CommaSeparated[Author]]]("name"))
     .out(jsonBody[List[Book]])
 
-  val books2ListingServerEndpoint: ZServerEndpoint[Any, Any] = booksListing.serverLogicSuccess(s => ZIO.succeed(Library.books))
+  val books2ListingServerEndpoint: ZServerEndpoint[Any, Any] = books2Listing.serverLogicSuccess { s =>
+    ZIO.succeed {
+      println(s"teh books " + s.mkString(", "))
+      Library.books
+    }
+  }
 
   val apiEndpoints: List[ZServerEndpoint[Any, Any]] = List(helloServerEndpoint, booksListingServerEndpoint, books2ListingServerEndpoint)
 
